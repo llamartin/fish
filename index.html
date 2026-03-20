@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Commons — A Fishery Simulation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --ocean-deep: #0a1628;
+  --ocean-mid: #12294a;
+  --ocean-light: #1a3a6a;
+  --ocean-surface: #2a5a9a;
+  --sand: #e8d5b7;
+  --sand-light: #f5ead8;
+  --coral: #e85d4a;
+  --coral-light: #f07d6e;
+  --seafoam: #4ecdc4;
+  --seafoam-dark: #2ba098;
+  --gold: #f0b429;
+  --text-primary: #f0ece4;
+  --text-secondary: #8fa4c0;
+  --text-dim: #5a7090;
+  --panel-bg: rgba(10, 22, 40, 0.85);
+  --panel-border: rgba(78, 205, 196, 0.15);
+}
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--ocean-deep);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.header {
+  text-align: center;
+  padding: 28px 24px 12px;
+}
+.header h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.2rem;
+  letter-spacing: 0.02em;
+  color: var(--sand-light);
+  margin-bottom: 4px;
+}
+.header .subtitle {
+  font-size: 0.8rem;
+  font-weight: 300;
+  color: var(--text-secondary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* TOP ROW: Ocean + History side by side */
+.top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+}
+.panel-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 10px;
+}
+
+/* OCEAN */
+.ocean-panel {
+  overflow: hidden;
+  padding: 0;
+}
+.ocean-panel .panel-title {
+  position: absolute;
+  top: 12px; left: 16px;
+  z-index: 2;
+  margin-bottom: 0;
+}
+#oceanCanvas {
+  width: 100%;
+  display: block;
+  aspect-ratio: 4 / 3;
+}
+
+/* HISTORY CHART */
+#historyCanvas {
+  width: 100%;
+  display: block;
+  aspect-ratio: 4 / 3;
+}
+.legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+.legend-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* BOTTOM ROW: Controls */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+/* STATS */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stat-item {
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.stat-label {
+  font-size: 0.66rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.stat-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--seafoam);
+}
+.stat-value.warn { color: var(--gold); }
+.stat-value.danger { color: var(--coral); }
+.stat-unit {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  margin-left: 2px;
+}
+
+/* SLIDER */
+.slider-container { margin-top: 4px; }
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.slider-header .rate-display {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--sand-light);
+}
+.slider-header .rate-unit {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-weight: 300;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(to right, var(--seafoam-dark), var(--gold), var(--coral));
+  border-radius: 3px;
+  outline: none;
+  margin: 6px 0;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--sand-light);
+  cursor: pointer;
+  border: 3px solid var(--ocean-deep);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--sand-light);
+  cursor: pointer;
+  border: 3px solid var(--ocean-deep);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.cost-readout {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.75rem;
+}
+.cost-readout span:first-child { color: var(--text-secondary); }
+.cost-readout .cost-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 500;
+}
+
+/* BUTTONS */
+.btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+.btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: all 0.2s;
+}
+.btn-advance {
+  background: var(--seafoam);
+  color: var(--ocean-deep);
+}
+.btn-advance:hover { background: var(--seafoam-dark); }
+.btn-advance:disabled {
+  background: var(--text-dim);
+  cursor: not-allowed;
+}
+.btn-reset {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-secondary);
+  border: 1px solid var(--panel-border);
+  flex: 0.5;
+}
+.btn-reset:hover { background: rgba(255,255,255,0.1); }
+
+/* FIXED PARAMS */
+.period-badge {
+  display: inline-block;
+  background: var(--seafoam);
+  color: var(--ocean-deep);
+  font-weight: 600;
+  font-size: 0.85rem;
+  min-width: 1.6em;
+  text-align: center;
+  padding: 1px 7px;
+  border-radius: 5px;
+  margin-left: 2px;
+  vertical-align: baseline;
+  letter-spacing: 0;
+}
+.fixed-params-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+.fixed-params-list span {
+  background: rgba(255,255,255,0.03);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+/* COLLAPSE */
+.collapse-msg {
+  display: none;
+  text-align: center;
+  padding: 30px 24px;
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.5rem;
+  color: var(--coral-light);
+  line-height: 1.5;
+}
+.collapse-msg .sub {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .top-row { grid-template-columns: 1fr; }
+  .bottom-row { grid-template-columns: 1fr; }
+  .header h1 { font-size: 1.7rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>The Commons</h1>
+  <div class="subtitle">A Common Pool Resource Simulation — Fishery</div>
+</div>
+
+<div class="container">
+  <!-- TOP ROW: Ocean + History -->
+  <div class="top-row">
+    <div class="panel ocean-panel">
+      <div class="panel-title">Ocean Density View</div>
+      <canvas id="oceanCanvas"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-title">History</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4ecdc4"></div> Fish Stock (left)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f0b429"></div> Your Cumul. Profit (right)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e85d4a; border-radius:0; width:12px; height:3px;"></div> Total Extraction</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#c084fc"></div> Unit Cost (far right)</div>
+      </div>
+      <canvas id="historyCanvas"></canvas>
+    </div>
+  </div>
+
+  <!-- BOTTOM ROW: Status, Your Rate, Others' Rate -->
+  <div class="bottom-row">
+    <div class="panel">
+      <div class="panel-title">Fishery Status — Period <span id="periodNum" class="period-badge">0</span></div>
+      <div class="stat-grid">
+        <div class="stat-item">
+          <div class="stat-label">Fish Stock</div>
+          <div class="stat-value" id="stockVal">1000</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Density</div>
+          <div class="stat-value" id="densityVal">100<span class="stat-unit">%</span></div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Your Profit This Period</div>
+          <div class="stat-value" id="profitVal">—</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Your Cumulative Profit</div>
+          <div class="stat-value" id="cumulProfitVal">$0</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-advance" id="advanceBtn" onclick="advancePeriod()">Fish &amp; Advance →</button>
+        <button class="btn btn-reset" onclick="resetSim()">Reset</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Your Extraction Rate</div>
+      <div class="slider-container">
+        <div class="slider-header">
+          <span class="rate-display" id="rateDisplay">6.5</span>
+          <span class="rate-unit">tonnes / period</span>
+        </div>
+        <input type="range" id="rateSlider" min="0" max="6.5" step="0.5" value="6.5">
+        <div class="cost-readout">
+          <span>Price per tonne</span>
+          <span class="cost-val" id="priceDisplay">$10.00</span>
+        </div>
+        <div class="cost-readout">
+          <span>Unit cost at current density</span>
+          <span class="cost-val" id="unitCostDisplay">$1.00</span>
+        </div>
+        <div class="cost-readout" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(78,205,196,0.1);">
+          <span>Expected revenue</span>
+          <span class="cost-val" id="projRevenue">$65.00</span>
+        </div>
+        <div class="cost-readout">
+          <span>Expected cost</span>
+          <span class="cost-val" id="projCost">$6.50</span>
+        </div>
+        <div class="cost-readout" style="margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(78,205,196,0.1);">
+          <span>Projected period profit</span>
+          <span class="cost-val" id="projProfit" style="font-size: 1rem;">$58.50</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Others' Extraction Rate (20 fishers)</div>
+      <div class="slider-container">
+        <div class="slider-header">
+          <span class="rate-display" id="othersRateDisplay">6.5</span>
+          <span class="rate-unit">tonnes / period each</span>
+        </div>
+        <input type="range" id="othersRateSlider" min="0" max="6.5" step="0.5" value="6.5">
+        <div class="cost-readout">
+          <span>Total others' extraction</span>
+          <span class="cost-val" id="othersTotalDisplay">130 t</span>
+        </div>
+        <div class="cost-readout" style="margin-top: 10px; font-size: 0.7rem; color: var(--text-dim); font-style: italic;">
+          What if a regulator could set this?
+        </div>
+      </div>
+      <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(78,205,196,0.08);">
+        <div class="panel-title" style="margin-bottom: 6px;">Fixed Parameters</div>
+        <div class="fixed-params-list">
+          <span>Total initial fish stock = 1,000</span>
+          <span>Regeneration rate = 0.29</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="collapse-msg" id="collapseMsg">
+    The fishery has collapsed.
+    <div class="sub">Stock fell below viable levels. Reset and try a different strategy — or reflect on whether any individual strategy could have changed the outcome.</div>
+  </div>
+</div>
+
+<script>
+// ===== FIXED PARAMETERS =====
+const N_OTHERS = 20;
+const OTHERS_RATE = 6.5;
+
+// ===== MODEL =====
+let state = {
+  stock: 1000,
+  period: 0,
+  cumulProfit: 0,
+  collapsed: false,
+  history: [{ period: 0, stock: 1000, extraction: 0, profit: 0, cumulProfit: 0, density: 1, unitCost: 1, yourRate: 0 }]
+};
+
+function getParams() {
+  return {
+    K: 1000,
+    r: 0.29,
+    nOthers: N_OTHERS,
+    othersRate: parseFloat(document.getElementById('othersRateSlider').value),
+    price: 10,
+    baseCost: 1
+  };
+}
+
+function density() {
+  return Math.max(0, state.stock / getParams().K);
+}
+
+function unitCost() {
+  const d = density();
+  if (d <= 0.01) return 999;
+  return getParams().baseCost / d;
+}
+
+function calcProfit(yourRate) {
+  const p = getParams();
+  const uc = unitCost();
+  const totalWanted = N_OTHERS * p.othersRate + yourRate;
+  let actualYour = yourRate;
+  if (totalWanted > state.stock) {
+    actualYour = yourRate * (state.stock / totalWanted);
+  }
+  return actualYour * (p.price - uc);
+}
+
+function advancePeriod() {
+  if (state.collapsed) return;
+  const p = getParams();
+  const yourRate = parseFloat(document.getElementById('rateSlider').value);
+
+  const othersTotal = N_OTHERS * p.othersRate;
+  let totalExtraction = yourRate + othersTotal;
+  let actualYour = yourRate;
+  if (totalExtraction > state.stock) {
+    const frac = state.stock / totalExtraction;
+    actualYour = yourRate * frac;
+    totalExtraction = state.stock;
+  }
+
+  const uc = unitCost();
+  const profit = actualYour * (p.price - uc);
+  state.cumulProfit += profit;
+
+  let newStock = state.stock - totalExtraction;
+  newStock = newStock + p.r * newStock * (1 - newStock / p.K);
+  newStock = Math.max(0, newStock);
+
+  state.stock = newStock;
+  state.period++;
+
+  state.history.push({
+    period: state.period,
+    stock: state.stock,
+    extraction: totalExtraction,
+    profit: profit,
+    cumulProfit: state.cumulProfit,
+    density: density(),
+    unitCost: unitCost(),
+    yourRate: yourRate
+  });
+
+  if (state.stock < 1) {
+    state.collapsed = true;
+    document.getElementById('collapseMsg').style.display = 'block';
+    document.getElementById('advanceBtn').disabled = true;
+  }
+
+  updateUI();
+}
+
+function resetSim() {
+  document.getElementById('rateSlider').value = 6.5;
+  document.getElementById('othersRateSlider').value = 6.5;
+  const p = getParams();
+  state = {
+    stock: p.K,
+    period: 0,
+    cumulProfit: 0,
+    collapsed: false,
+    history: [{ period: 0, stock: p.K, extraction: 0, profit: 0, cumulProfit: 0, density: 1, unitCost: p.baseCost, yourRate: 0 }]
+  };
+  document.getElementById('collapseMsg').style.display = 'none';
+  document.getElementById('advanceBtn').disabled = false;
+  updateUI();
+}
+
+// ===== UI =====
+function updateUI() {
+  const d = density();
+  const uc = unitCost();
+  const p = getParams();
+  const yourRate = parseFloat(document.getElementById('rateSlider').value);
+
+  document.getElementById('periodNum').textContent = state.period;
+  document.getElementById('stockVal').textContent = Math.round(state.stock);
+  document.getElementById('densityVal').innerHTML = (d * 100).toFixed(1) + '<span class="stat-unit">%</span>';
+
+  const lastEntry = state.history[state.history.length - 1];
+  document.getElementById('profitVal').textContent = state.period === 0 ? '—' : '$' + lastEntry.profit.toFixed(1);
+  document.getElementById('cumulProfitVal').textContent = '$' + state.cumulProfit.toFixed(1);
+
+  const stockEl = document.getElementById('stockVal');
+  const densEl = document.getElementById('densityVal');
+  [stockEl, densEl].forEach(el => {
+    el.className = 'stat-value' + (d < 0.2 ? ' danger' : d < 0.5 ? ' warn' : '');
+  });
+
+  document.getElementById('rateDisplay').textContent = yourRate;
+  document.getElementById('unitCostDisplay').textContent = uc >= 999 ? '—' : '$' + uc.toFixed(2);
+  document.getElementById('priceDisplay').textContent = '$' + p.price.toFixed(2);
+  const proj = calcProfit(yourRate);
+  const projEl = document.getElementById('projProfit');
+  projEl.textContent = '$' + proj.toFixed(2);
+  projEl.style.color = proj < 0 ? '#e85d4a' : '#4ecdc4';
+
+  // Expected revenue and cost
+  const totalWanted = N_OTHERS * p.othersRate + yourRate;
+  const actualYour = totalWanted > state.stock ? yourRate * (state.stock / totalWanted) : yourRate;
+  const expRevenue = actualYour * p.price;
+  const expCost = actualYour * uc;
+  document.getElementById('projRevenue').textContent = '$' + expRevenue.toFixed(2);
+  document.getElementById('projCost').textContent = uc >= 999 ? '—' : '$' + expCost.toFixed(2);
+
+  // Others' rate slider
+  const othersRate = parseFloat(document.getElementById('othersRateSlider').value);
+  document.getElementById('othersRateDisplay').textContent = othersRate;
+  document.getElementById('othersTotalDisplay').textContent = (N_OTHERS * othersRate).toFixed(0) + ' t';
+
+  drawOcean();
+  drawHistory();
+}
+
+// ===== OCEAN VISUALIZATION =====
+const oceanCanvas = document.getElementById('oceanCanvas');
+const octx = oceanCanvas.getContext('2d');
+let fishSprites = [];
+
+function initFishSprites(n) {
+  fishSprites = [];
+  for (let i = 0; i < n; i++) {
+    fishSprites.push({
+      x: Math.random(),
+      y: Math.random(),
+      vx: (Math.random() - 0.5) * 0.002,
+      vy: (Math.random() - 0.5) * 0.001,
+      size: 3 + Math.random() * 5,
+      phase: Math.random() * Math.PI * 2,
+      hue: 170 + Math.random() * 40
+    });
+  }
+}
+initFishSprites(300);
+
+function drawOcean() {
+  const W = oceanCanvas.width = oceanCanvas.offsetWidth * 2;
+  const H = oceanCanvas.height = oceanCanvas.offsetHeight * 2;
+  const d = density();
+
+  const grad = octx.createLinearGradient(0, 0, 0, H);
+  const brightness = 0.3 + d * 0.7;
+  grad.addColorStop(0, `rgba(${Math.round(26*brightness)}, ${Math.round(58*brightness + 80*(1-brightness))}, ${Math.round(106*brightness + 40*(1-brightness))}, 1)`);
+  grad.addColorStop(0.5, `rgba(${Math.round(18*brightness)}, ${Math.round(41*brightness + 30*(1-brightness))}, ${Math.round(74*brightness + 20*(1-brightness))}, 1)`);
+  grad.addColorStop(1, `rgba(${Math.round(10*brightness)}, ${Math.round(22*brightness)}, ${Math.round(40*brightness)}, 1)`);
+  octx.fillStyle = grad;
+  octx.fillRect(0, 0, W, H);
+
+  // Light rays
+  octx.save();
+  for (let i = 0; i < 4; i++) {
+    const x = W * (0.15 + i * 0.22);
+    const rayGrad = octx.createLinearGradient(x, 0, x + 40, H * 0.7);
+    rayGrad.addColorStop(0, `rgba(78, 205, 196, ${0.04 * d})`);
+    rayGrad.addColorStop(1, 'rgba(78, 205, 196, 0)');
+    octx.fillStyle = rayGrad;
+    octx.beginPath();
+    octx.moveTo(x - 15, 0);
+    octx.lineTo(x + 55, 0);
+    octx.lineTo(x + 80 + i * 10, H * 0.7);
+    octx.lineTo(x - 40 + i * 10, H * 0.7);
+    octx.fill();
+  }
+  octx.restore();
+
+  // Plankton
+  const particleCount = Math.floor(50 * d);
+  octx.fillStyle = `rgba(78, 205, 196, ${0.15 * d})`;
+  const t = Date.now() * 0.001;
+  for (let i = 0; i < particleCount; i++) {
+    const px = (Math.sin(t * 0.3 + i * 1.7) * 0.5 + 0.5) * W;
+    const py = (Math.cos(t * 0.2 + i * 2.3) * 0.5 + 0.5) * H;
+    octx.beginPath();
+    octx.arc(px, py, 1.5, 0, Math.PI * 2);
+    octx.fill();
+  }
+
+  // Fish
+  const visibleCount = Math.floor(fishSprites.length * d);
+  for (let i = 0; i < visibleCount; i++) {
+    const f = fishSprites[i];
+    f.x += f.vx + Math.sin(t + f.phase) * 0.0005;
+    f.y += f.vy + Math.cos(t * 0.7 + f.phase) * 0.0003;
+    if (f.x < -0.05) f.x = 1.05;
+    if (f.x > 1.05) f.x = -0.05;
+    if (f.y < -0.05) f.y = 1.05;
+    if (f.y > 1.05) f.y = -0.05;
+
+    const fx = f.x * W;
+    const fy = f.y * H;
+    const s = f.size * (W / 800);
+    const dir = f.vx >= 0 ? 1 : -1;
+
+    octx.save();
+    octx.translate(fx, fy);
+    octx.scale(dir, 1);
+
+    octx.fillStyle = `hsla(${f.hue}, 60%, ${55 + d * 20}%, ${0.5 + d * 0.4})`;
+    octx.beginPath();
+    octx.ellipse(0, 0, s * 2, s, 0, 0, Math.PI * 2);
+    octx.fill();
+
+    octx.beginPath();
+    octx.moveTo(-s * 2, 0);
+    octx.lineTo(-s * 3.2, -s * 0.9);
+    octx.lineTo(-s * 3.2, s * 0.9);
+    octx.closePath();
+    octx.fill();
+
+    octx.fillStyle = `rgba(240, 236, 228, ${0.6 + d * 0.3})`;
+    octx.beginPath();
+    octx.arc(s * 1.1, -s * 0.2, s * 0.25, 0, Math.PI * 2);
+    octx.fill();
+
+    octx.restore();
+  }
+
+  // Density overlay
+  octx.save();
+  octx.font = `bold ${W * 0.06}px 'IBM Plex Mono', monospace`;
+  octx.fillStyle = `rgba(240, 236, 228, 0.12)`;
+  octx.textAlign = 'center';
+  octx.textBaseline = 'middle';
+  octx.fillText(`${(d * 100).toFixed(0)}%`, W / 2, H / 2);
+  octx.restore();
+
+  // Period badge
+  octx.save();
+  octx.font = `${W * 0.022}px 'IBM Plex Mono', monospace`;
+  octx.fillStyle = `rgba(240, 236, 228, 0.25)`;
+  octx.textAlign = 'right';
+  octx.fillText(`period ${state.period}`, W - 20, H - 16);
+  octx.restore();
+
+  // Seabed
+  octx.save();
+  const seabedGrad = octx.createLinearGradient(0, H * 0.92, 0, H);
+  seabedGrad.addColorStop(0, 'rgba(232, 213, 183, 0)');
+  seabedGrad.addColorStop(1, `rgba(232, 213, 183, ${0.06 + 0.04 * d})`);
+  octx.fillStyle = seabedGrad;
+  octx.fillRect(0, H * 0.92, W, H * 0.08);
+  octx.restore();
+}
+
+// ===== HISTORY CHART =====
+const histCanvas = document.getElementById('historyCanvas');
+const hctx = histCanvas.getContext('2d');
+
+function drawHistory() {
+  const W = histCanvas.width = histCanvas.offsetWidth * 2;
+  const H = histCanvas.height = histCanvas.offsetHeight * 2;
+  const p = getParams();
+  const hist = state.history;
+
+  hctx.clearRect(0, 0, W, H);
+
+  if (hist.length < 2) {
+    hctx.fillStyle = 'rgba(143, 164, 192, 0.3)';
+    hctx.font = `${W * 0.022}px 'IBM Plex Sans', sans-serif`;
+    hctx.textAlign = 'center';
+    hctx.fillText('Advance periods to see history', W / 2, H / 2);
+    return;
+  }
+
+  const pad = { l: 56, r: 80, t: 16, b: 36 };
+  const cw = W - pad.l - pad.r;
+  const ch = H - pad.t - pad.b;
+
+  const maxPeriod = 15;
+  const maxStock = p.K * 1.05;
+  const maxProfit = Math.max(...hist.map(h => Math.abs(h.cumulProfit)), 100) * 1.2;
+  const maxExtract = (N_OTHERS * 6.5 + 6.5) * 1.3; // fixed scale at max possible
+  // Unit cost axis: cap at price so we can show the price line clearly
+  const maxUnitCost = p.price * 1.3;
+
+  function xPos(per) { return pad.l + (per / maxPeriod) * cw; }
+  function yStock(v) { return pad.t + (1 - v / maxStock) * ch; }
+  function yProfit(v) { return pad.t + (1 - v / maxProfit) * ch; }
+  function yExtract(v) { return pad.t + (1 - v / maxExtract) * ch; }
+  function yUnitCost(v) { return pad.t + (1 - Math.min(v, maxUnitCost) / maxUnitCost) * ch; }
+
+  // Grid
+  hctx.strokeStyle = 'rgba(143, 164, 192, 0.08)';
+  hctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + (i / 4) * ch;
+    hctx.beginPath(); hctx.moveTo(pad.l, y); hctx.lineTo(W - pad.r, y); hctx.stroke();
+  }
+
+  // Period ticks
+  hctx.fillStyle = 'rgba(143, 164, 192, 0.35)';
+  hctx.font = `${W * 0.018}px 'IBM Plex Mono', monospace`;
+  hctx.textAlign = 'center';
+  for (let i = 0; i <= maxPeriod; i += 3) {
+    const x = xPos(i);
+    hctx.fillText(i, x, H - pad.b + 18);
+    hctx.strokeStyle = 'rgba(143, 164, 192, 0.05)';
+    hctx.beginPath(); hctx.moveTo(x, pad.t); hctx.lineTo(x, pad.t + ch); hctx.stroke();
+  }
+  hctx.fillText('Period', pad.l + cw / 2, H - 2);
+
+  // Left axis (stock)
+  hctx.save();
+  hctx.fillStyle = 'rgba(78, 205, 196, 0.5)';
+  hctx.font = `${W * 0.015}px 'IBM Plex Mono', monospace`;
+  hctx.textAlign = 'right';
+  hctx.fillText(Math.round(maxStock), pad.l - 6, pad.t + 6);
+  hctx.fillText('0', pad.l - 6, pad.t + ch + 5);
+  hctx.restore();
+
+  // Right axis — unit cost (purple)
+  hctx.save();
+  hctx.fillStyle = 'rgba(192, 132, 252, 0.6)';
+  hctx.font = `${W * 0.015}px 'IBM Plex Mono', monospace`;
+  hctx.textAlign = 'left';
+  hctx.fillText('$' + Math.round(maxUnitCost), W - pad.r + 6, pad.t + 6);
+  hctx.fillText('$0', W - pad.r + 6, pad.t + ch + 5);
+  hctx.restore();
+
+  // Far-right axis — cumul profit (gold) offset further
+  hctx.save();
+  hctx.fillStyle = 'rgba(240, 180, 41, 0.5)';
+  hctx.font = `${W * 0.013}px 'IBM Plex Mono', monospace`;
+  hctx.textAlign = 'left';
+  hctx.fillText('$' + Math.round(maxProfit), W - pad.r + 42, pad.t + 6);
+  hctx.fillText('$0', W - pad.r + 42, pad.t + ch + 5);
+  hctx.restore();
+
+  // Price reference line (horizontal dashed)
+  const priceY = yUnitCost(p.price);
+  hctx.save();
+  hctx.strokeStyle = 'rgba(240, 236, 228, 0.2)';
+  hctx.lineWidth = 1;
+  hctx.setLineDash([4, 4]);
+  hctx.beginPath();
+  hctx.moveTo(pad.l, priceY);
+  hctx.lineTo(W - pad.r, priceY);
+  hctx.stroke();
+  hctx.setLineDash([]);
+  hctx.fillStyle = 'rgba(240, 236, 228, 0.3)';
+  hctx.font = `${W * 0.013}px 'IBM Plex Mono', monospace`;
+  hctx.textAlign = 'right';
+  hctx.fillText('price = $' + p.price, W - pad.r - 4, priceY - 5);
+  hctx.restore();
+
+  // Area fill under stock
+  hctx.save();
+  hctx.beginPath();
+  hist.forEach((d, i) => {
+    const x = xPos(d.period);
+    const y = yStock(d.stock);
+    if (i === 0) hctx.moveTo(x, y); else hctx.lineTo(x, y);
+  });
+  hctx.lineTo(xPos(hist[hist.length - 1].period), yStock(0));
+  hctx.lineTo(xPos(0), yStock(0));
+  hctx.closePath();
+  hctx.fillStyle = 'rgba(78, 205, 196, 0.07)';
+  hctx.fill();
+  hctx.restore();
+
+  // Lines
+  function drawLine(data, yFn, color, width, dashed) {
+    hctx.strokeStyle = color;
+    hctx.lineWidth = width;
+    hctx.lineJoin = 'round';
+    hctx.setLineDash(dashed ? [8, 5] : []);
+    hctx.beginPath();
+    data.forEach((d, i) => {
+      const x = xPos(d.period);
+      const y = yFn(d);
+      if (i === 0) hctx.moveTo(x, y); else hctx.lineTo(x, y);
+    });
+    hctx.stroke();
+    hctx.setLineDash([]);
+  }
+
+  drawLine(hist, d => yStock(d.stock), '#4ecdc4', 3, false);
+  drawLine(hist, d => yProfit(d.cumulProfit), '#f0b429', 2.5, false);
+  drawLine(hist.slice(1), d => yExtract(d.extraction), '#e85d4a', 2, true);
+  drawLine(hist, d => yUnitCost(d.unitCost), '#c084fc', 2.5, false);
+
+  // Dots on stock
+  hist.forEach(d => {
+    hctx.fillStyle = '#4ecdc4';
+    hctx.beginPath();
+    hctx.arc(xPos(d.period), yStock(d.stock), 3.5, 0, Math.PI * 2);
+    hctx.fill();
+  });
+
+  // Dots on profit
+  hist.forEach(d => {
+    hctx.fillStyle = '#f0b429';
+    hctx.beginPath();
+    hctx.arc(xPos(d.period), yProfit(d.cumulProfit), 3, 0, Math.PI * 2);
+    hctx.fill();
+  });
+
+  // Dots on unit cost
+  hist.forEach(d => {
+    hctx.fillStyle = '#c084fc';
+    hctx.beginPath();
+    hctx.arc(xPos(d.period), yUnitCost(d.unitCost), 3, 0, Math.PI * 2);
+    hctx.fill();
+  });
+}
+
+// ===== ANIMATION =====
+function animate() {
+  drawOcean();
+  requestAnimationFrame(animate);
+}
+
+// ===== EVENTS =====
+document.getElementById('rateSlider').addEventListener('input', updateUI);
+document.getElementById('othersRateSlider').addEventListener('input', updateUI);
+
+updateUI();
+animate();
+</script>
+</body>
+</html>
