@@ -10,22 +10,22 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --ocean-deep: #0a1628;
-  --ocean-mid: #12294a;
-  --ocean-light: #1a3a6a;
+  --ocean-deep: #f5f7fa;
+  --ocean-mid: #e8ecf2;
+  --ocean-light: #dce2ea;
   --ocean-surface: #2a5a9a;
-  --sand: #e8d5b7;
-  --sand-light: #f5ead8;
-  --coral: #e85d4a;
-  --coral-light: #f07d6e;
-  --seafoam: #4ecdc4;
-  --seafoam-dark: #2ba098;
-  --gold: #f0b429;
-  --text-primary: #f0ece4;
-  --text-secondary: #8fa4c0;
-  --text-dim: #5a7090;
-  --panel-bg: rgba(10, 22, 40, 0.85);
-  --panel-border: rgba(78, 205, 196, 0.15);
+  --sand: #1a2a3a;
+  --sand-light: #1a2a3a;
+  --coral: #d63031;
+  --coral-light: #e05050;
+  --seafoam: #0984e3;
+  --seafoam-dark: #0767b3;
+  --gold: #e67e22;
+  --text-primary: #1a2a3a;
+  --text-secondary: #556677;
+  --text-dim: #8899aa;
+  --panel-bg: #ffffff;
+  --panel-border: #d6dde5;
 }
 
 body {
@@ -44,13 +44,13 @@ body {
   font-family: 'DM Serif Display', serif;
   font-size: 2.2rem;
   letter-spacing: 0.02em;
-  color: var(--sand-light);
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 .header .subtitle {
   font-size: 0.8rem;
   font-weight: 300;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -77,6 +77,7 @@ body {
   border-radius: 12px;
   padding: 20px;
   position: relative;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 .panel-title {
   font-family: 'IBM Plex Mono', monospace;
@@ -97,6 +98,7 @@ body {
   top: 12px; left: 16px;
   z-index: 2;
   margin-bottom: 0;
+  color: rgba(255,255,255,0.5);
 }
 #oceanCanvas {
   width: 100%;
@@ -143,7 +145,7 @@ body {
   gap: 10px;
 }
 .stat-item {
-  background: rgba(255,255,255,0.03);
+  background: rgba(0,0,0,0.03);
   border-radius: 8px;
   padding: 10px 12px;
 }
@@ -180,7 +182,7 @@ body {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 1.5rem;
   font-weight: 500;
-  color: var(--sand-light);
+  color: var(--text-primary);
 }
 .slider-header .rate-unit {
   font-size: 0.72rem;
@@ -191,7 +193,7 @@ input[type="range"] {
   -webkit-appearance: none;
   width: 100%;
   height: 6px;
-  background: linear-gradient(to right, var(--seafoam-dark), var(--gold), var(--coral));
+  background: linear-gradient(to right, var(--seafoam), var(--gold), var(--coral));
   border-radius: 3px;
   outline: none;
   margin: 6px 0;
@@ -200,18 +202,18 @@ input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 22px; height: 22px;
   border-radius: 50%;
-  background: var(--sand-light);
+  background: #ffffff;
   cursor: pointer;
-  border: 3px solid var(--ocean-deep);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  border: 3px solid var(--seafoam);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 input[type="range"]::-moz-range-thumb {
   width: 22px; height: 22px;
   border-radius: 50%;
-  background: var(--sand-light);
+  background: #ffffff;
   cursor: pointer;
-  border: 3px solid var(--ocean-deep);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  border: 3px solid var(--seafoam);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 
 .cost-readout {
@@ -247,26 +249,26 @@ input[type="range"]::-moz-range-thumb {
 }
 .btn-advance {
   background: var(--seafoam);
-  color: var(--ocean-deep);
+  color: #ffffff;
 }
 .btn-advance:hover { background: var(--seafoam-dark); }
 .btn-advance:disabled {
-  background: var(--text-dim);
+  background: #bcc5ce;
   cursor: not-allowed;
 }
 .btn-reset {
-  background: rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.04);
   color: var(--text-secondary);
   border: 1px solid var(--panel-border);
   flex: 0.5;
 }
-.btn-reset:hover { background: rgba(255,255,255,0.1); }
+.btn-reset:hover { background: rgba(0,0,0,0.08); }
 
 /* FIXED PARAMS */
 .period-badge {
   display: inline-block;
   background: var(--seafoam);
-  color: var(--ocean-deep);
+  color: #ffffff;
   font-weight: 600;
   font-size: 0.85rem;
   min-width: 1.6em;
@@ -286,7 +288,7 @@ input[type="range"]::-moz-range-thumb {
   color: var(--text-dim);
 }
 .fixed-params-list span {
-  background: rgba(255,255,255,0.03);
+  background: rgba(0,0,0,0.04);
   padding: 3px 8px;
   border-radius: 4px;
 }
@@ -334,10 +336,10 @@ input[type="range"]::-moz-range-thumb {
     <div class="panel">
       <div class="panel-title">History</div>
       <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#4ecdc4"></div> Fish Stock (left)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#f0b429"></div> Your Cumul. Profit (right)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#e85d4a; border-radius:0; width:12px; height:3px;"></div> Total Extraction</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#c084fc"></div> Unit Cost (far right)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#0891b2"></div> Fish Stock (left)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#d97706"></div> Your Cumul. Profit (right)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#dc2626; border-radius:0; width:12px; height:3px;"></div> Total Extraction</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div> Unit Cost (far right)</div>
       </div>
       <canvas id="historyCanvas"></canvas>
     </div>
@@ -387,7 +389,7 @@ input[type="range"]::-moz-range-thumb {
           <span>Unit cost at current density</span>
           <span class="cost-val" id="unitCostDisplay">$1.00</span>
         </div>
-        <div class="cost-readout" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(78,205,196,0.1);">
+        <div class="cost-readout" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08);">
           <span>Expected revenue</span>
           <span class="cost-val" id="projRevenue">$65.00</span>
         </div>
@@ -395,7 +397,7 @@ input[type="range"]::-moz-range-thumb {
           <span>Expected cost</span>
           <span class="cost-val" id="projCost">$6.50</span>
         </div>
-        <div class="cost-readout" style="margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(78,205,196,0.1);">
+        <div class="cost-readout" style="margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(0,0,0,0.08);">
           <span>Projected period profit</span>
           <span class="cost-val" id="projProfit" style="font-size: 1rem;">$58.50</span>
         </div>
@@ -418,7 +420,7 @@ input[type="range"]::-moz-range-thumb {
           What if a regulator could set this?
         </div>
       </div>
-      <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(78,205,196,0.08);">
+      <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.08);">
         <div class="panel-title" style="margin-bottom: 6px;">Fixed Parameters</div>
         <div class="fixed-params-list">
           <span>Total initial fish stock = 1,000</span>
@@ -568,7 +570,7 @@ function updateUI() {
   const proj = calcProfit(yourRate);
   const projEl = document.getElementById('projProfit');
   projEl.textContent = '$' + proj.toFixed(2);
-  projEl.style.color = proj < 0 ? '#e85d4a' : '#4ecdc4';
+  projEl.style.color = proj < 0 ? '#dc2626' : '#0891b2';
 
   // Expected revenue and cost
   const totalWanted = N_OTHERS * p.othersRate + yourRate;
@@ -730,7 +732,7 @@ function drawHistory() {
   hctx.clearRect(0, 0, W, H);
 
   if (hist.length < 2) {
-    hctx.fillStyle = 'rgba(143, 164, 192, 0.3)';
+    hctx.fillStyle = 'rgba(100, 116, 139, 0.5)';
     hctx.font = `${W * 0.022}px 'IBM Plex Sans', sans-serif`;
     hctx.textAlign = 'center';
     hctx.fillText('Advance periods to see history', W / 2, H / 2);
@@ -755,7 +757,7 @@ function drawHistory() {
   function yUnitCost(v) { return pad.t + (1 - Math.min(v, maxUnitCost) / maxUnitCost) * ch; }
 
   // Grid
-  hctx.strokeStyle = 'rgba(143, 164, 192, 0.08)';
+  hctx.strokeStyle = 'rgba(100, 116, 139, 0.12)';
   hctx.lineWidth = 1;
   for (let i = 0; i <= 4; i++) {
     const y = pad.t + (i / 4) * ch;
@@ -763,20 +765,20 @@ function drawHistory() {
   }
 
   // Period ticks
-  hctx.fillStyle = 'rgba(143, 164, 192, 0.35)';
+  hctx.fillStyle = 'rgba(100, 116, 139, 0.6)';
   hctx.font = `${W * 0.018}px 'IBM Plex Mono', monospace`;
   hctx.textAlign = 'center';
   for (let i = 0; i <= maxPeriod; i += 3) {
     const x = xPos(i);
     hctx.fillText(i, x, H - pad.b + 18);
-    hctx.strokeStyle = 'rgba(143, 164, 192, 0.05)';
+    hctx.strokeStyle = 'rgba(100, 116, 139, 0.08)';
     hctx.beginPath(); hctx.moveTo(x, pad.t); hctx.lineTo(x, pad.t + ch); hctx.stroke();
   }
   hctx.fillText('Period', pad.l + cw / 2, H - 2);
 
   // Left axis (stock)
   hctx.save();
-  hctx.fillStyle = 'rgba(78, 205, 196, 0.5)';
+  hctx.fillStyle = 'rgba(8, 145, 178, 0.7)';
   hctx.font = `${W * 0.015}px 'IBM Plex Mono', monospace`;
   hctx.textAlign = 'right';
   hctx.fillText(Math.round(maxStock), pad.l - 6, pad.t + 6);
@@ -785,7 +787,7 @@ function drawHistory() {
 
   // Right axis — unit cost (purple)
   hctx.save();
-  hctx.fillStyle = 'rgba(192, 132, 252, 0.6)';
+  hctx.fillStyle = 'rgba(124, 58, 237, 0.7)';
   hctx.font = `${W * 0.015}px 'IBM Plex Mono', monospace`;
   hctx.textAlign = 'left';
   hctx.fillText('$' + Math.round(maxUnitCost), W - pad.r + 6, pad.t + 6);
@@ -794,7 +796,7 @@ function drawHistory() {
 
   // Far-right axis — cumul profit (gold) offset further
   hctx.save();
-  hctx.fillStyle = 'rgba(240, 180, 41, 0.5)';
+  hctx.fillStyle = 'rgba(217, 119, 6, 0.7)';
   hctx.font = `${W * 0.013}px 'IBM Plex Mono', monospace`;
   hctx.textAlign = 'left';
   hctx.fillText('$' + Math.round(maxProfit), W - pad.r + 42, pad.t + 6);
@@ -804,7 +806,7 @@ function drawHistory() {
   // Price reference line (horizontal dashed)
   const priceY = yUnitCost(p.price);
   hctx.save();
-  hctx.strokeStyle = 'rgba(240, 236, 228, 0.2)';
+  hctx.strokeStyle = 'rgba(100, 116, 139, 0.3)';
   hctx.lineWidth = 1;
   hctx.setLineDash([4, 4]);
   hctx.beginPath();
@@ -812,7 +814,7 @@ function drawHistory() {
   hctx.lineTo(W - pad.r, priceY);
   hctx.stroke();
   hctx.setLineDash([]);
-  hctx.fillStyle = 'rgba(240, 236, 228, 0.3)';
+  hctx.fillStyle = 'rgba(100, 116, 139, 0.5)';
   hctx.font = `${W * 0.013}px 'IBM Plex Mono', monospace`;
   hctx.textAlign = 'right';
   hctx.fillText('price = $' + p.price, W - pad.r - 4, priceY - 5);
@@ -829,7 +831,7 @@ function drawHistory() {
   hctx.lineTo(xPos(hist[hist.length - 1].period), yStock(0));
   hctx.lineTo(xPos(0), yStock(0));
   hctx.closePath();
-  hctx.fillStyle = 'rgba(78, 205, 196, 0.07)';
+  hctx.fillStyle = 'rgba(8, 145, 178, 0.08)';
   hctx.fill();
   hctx.restore();
 
@@ -849,14 +851,14 @@ function drawHistory() {
     hctx.setLineDash([]);
   }
 
-  drawLine(hist, d => yStock(d.stock), '#4ecdc4', 3, false);
-  drawLine(hist, d => yProfit(d.cumulProfit), '#f0b429', 2.5, false);
-  drawLine(hist.slice(1), d => yExtract(d.extraction), '#e85d4a', 2, true);
-  drawLine(hist, d => yUnitCost(d.unitCost), '#c084fc', 2.5, false);
+  drawLine(hist, d => yStock(d.stock), '#0891b2', 3, false);
+  drawLine(hist, d => yProfit(d.cumulProfit), '#d97706', 2.5, false);
+  drawLine(hist.slice(1), d => yExtract(d.extraction), '#dc2626', 2, true);
+  drawLine(hist, d => yUnitCost(d.unitCost), '#7c3aed', 2.5, false);
 
   // Dots on stock
   hist.forEach(d => {
-    hctx.fillStyle = '#4ecdc4';
+    hctx.fillStyle = '#0891b2';
     hctx.beginPath();
     hctx.arc(xPos(d.period), yStock(d.stock), 3.5, 0, Math.PI * 2);
     hctx.fill();
@@ -864,7 +866,7 @@ function drawHistory() {
 
   // Dots on profit
   hist.forEach(d => {
-    hctx.fillStyle = '#f0b429';
+    hctx.fillStyle = '#d97706';
     hctx.beginPath();
     hctx.arc(xPos(d.period), yProfit(d.cumulProfit), 3, 0, Math.PI * 2);
     hctx.fill();
@@ -872,7 +874,7 @@ function drawHistory() {
 
   // Dots on unit cost
   hist.forEach(d => {
-    hctx.fillStyle = '#c084fc';
+    hctx.fillStyle = '#7c3aed';
     hctx.beginPath();
     hctx.arc(xPos(d.period), yUnitCost(d.unitCost), 3, 0, Math.PI * 2);
     hctx.fill();
